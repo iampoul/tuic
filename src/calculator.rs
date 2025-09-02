@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::f64::consts::PI;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AngleMode {
@@ -90,6 +91,20 @@ pub enum CalculatorError {
     InvalidComplex,
 }
 
+impl fmt::Display for CalculatorError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CalculatorError::InvalidExpression => write!(f, "Invalid expression"),
+            CalculatorError::DivisionByZero => write!(f, "Division by zero"),
+            CalculatorError::UnknownOperator => write!(f, "Unknown operator"),
+            CalculatorError::MismatchedParentheses => write!(f, "Mismatched parentheses"),
+            CalculatorError::StackUnderflow => write!(f, "Stack underflow"),
+            CalculatorError::InvalidBase => write!(f, "Invalid number for current base"),
+            CalculatorError::InvalidComplex => write!(f, "Invalid complex number"),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct StackEntry {
     pub expression: String,
@@ -101,6 +116,7 @@ pub struct Calculator {
     pub stack: Vec<StackEntry>,
     pub error: Option<String>,
     pub history: Vec<String>,
+    pub history_position: usize,
     pub show_help: bool,
     pub angle_mode: AngleMode,
     pub base_mode: BaseMode,
@@ -116,6 +132,7 @@ impl Calculator {
             stack: Vec::new(),
             error: None,
             history: Vec::new(),
+            history_position: 0,
             show_help: false,
             angle_mode: AngleMode::Radians,
             base_mode: BaseMode::Decimal,
@@ -157,6 +174,7 @@ impl Calculator {
         self.error = None;
         self.history.clear();
         self.stack_position = 0;
+        self.history_position = 0;
     }
 
     pub fn toggle_help(&mut self) {
@@ -239,6 +257,36 @@ impl Calculator {
         }
     }
 
+    pub fn browse_history_up(&mut self) {
+        if self.history.is_empty() {
+            return;
+        }
+        if self.history_position > 0 {
+            self.history_position -= 1;
+        }
+        self.input = self.history[self.history_position].split(" = ").next().unwrap_or("").to_string();
+        self.error = None;
+    }
+
+    pub fn browse_history_down(&mut self) {
+        if self.history.is_empty() {
+            return;
+        }
+        if self.history_position < self.history.len() - 1 {
+            self.history_position += 1;
+        } else {
+            // If at the end of history, clear input
+            self.history_position = self.history.len();
+            self.input.clear();
+        }
+        if self.history_position < self.history.len() {
+            self.input = self.history[self.history_position].split(" = ").next().unwrap_or("").to_string();
+        } else {
+            self.input.clear();
+        }
+        self.error = None;
+    }
+
     pub fn enter(&mut self) {
         if self.input.is_empty() {
             // If no input, duplicate the top stack item
@@ -255,11 +303,12 @@ impl Calculator {
                 };
                 self.stack.push(new_entry);
                 self.history.push(format!("{} = {}", self.input, self.format_stack_value(&self.stack.last().unwrap().result)));
+                self.history_position = self.history.len(); // Reset history position to the end
                 self.input.clear();
                 self.error = None;
             }
             Err(e) => {
-                self.error = Some(format!("{:?}", e));
+                self.error = Some(format!("{}", e));
             }
         }
     }

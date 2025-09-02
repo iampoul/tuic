@@ -13,6 +13,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .constraints([
             Constraint::Length(3),  // Title with modes
             Constraint::Min(5),     // Stack display
+            Constraint::Length(5),  // History display
             Constraint::Length(3),  // Input
             Constraint::Length(3),  // Status/Error
             Constraint::Length(6),  // Help
@@ -58,6 +59,26 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .style(Style::default().fg(Color::White));
     f.render_widget(stack, chunks[1]);
 
+    // History display
+    let history_items: Vec<ListItem> = calculator
+        .history
+        .iter()
+        .enumerate()
+        .map(|(i, entry)| {
+            let mut item = ListItem::new(entry.clone());
+            if i == calculator.history_position {
+                item = item.style(Style::default().add_modifier(Modifier::REVERSED));
+            }
+            item
+        })
+        .collect();
+
+    let history_title = format!("History ({} items)", calculator.history.len());
+    let history = List::new(history_items)
+        .block(Block::default().borders(Borders::ALL).title(history_title))
+        .style(Style::default().fg(Color::DarkGray));
+    f.render_widget(history, chunks[2]);
+
     // Input
     let input_text = if calculator.input.is_empty() {
         "Enter expression..."
@@ -75,7 +96,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .style(input_style)
         .block(Block::default().borders(Borders::ALL).title("Input"))
         .wrap(Wrap { trim: true });
-    f.render_widget(input, chunks[2]);
+    f.render_widget(input, chunks[3]);
 
     // Status: Show current value or error
     let (status_text, status_style) = if let Some(error) = &calculator.error {
@@ -90,7 +111,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .style(status_style)
         .block(Block::default().borders(Borders::ALL).title("Status"))
         .wrap(Wrap { trim: true });
-    f.render_widget(status_widget, chunks[3]);
+    f.render_widget(status_widget, chunks[4]);
 
     // Help
     let help_text = vec![
@@ -116,12 +137,18 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
             Span::raw(" | Parentheses: "),
             Span::styled("( )", Style::default().fg(Color::Cyan)),
         ]),
+        Line::from(vec![
+            Span::styled("PageUp/PageDown", Style::default().fg(Color::Yellow)),
+            Span::raw(": Browse History | "),
+            Span::styled("Up/Down", Style::default().fg(Color::Yellow)),
+            Span::raw(": Browse Stack"),
+        ]),
     ];
 
     let help = Paragraph::new(help_text)
         .block(Block::default().borders(Borders::ALL).title("Quick Help (Press 'h' for more)"))
         .wrap(Wrap { trim: true });
-    f.render_widget(help, chunks[4]);
+    f.render_widget(help, chunks[5]);
 
     // Render help dialog if active
     if calculator.show_help {
@@ -164,8 +191,8 @@ fn draw_help_dialog(f: &mut Frame) {
         ]),
         Line::from(vec![
             Span::raw("  • "),
-            Span::styled("PageDown", Style::default().fg(Color::Green)),
-            Span::raw("    Swap top two stack items")
+            Span::styled("Insert", Style::default().fg(Color::Green)),
+            Span::raw("      Swap top two stack items")
         ]),
         Line::from(vec![
             Span::raw("  • "),
@@ -200,6 +227,11 @@ fn draw_help_dialog(f: &mut Frame) {
             Span::raw("  • "),
             Span::styled("Up/Down", Style::default().fg(Color::Green)),
             Span::raw("     Stack browsing mode")
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::styled("PageUp/PageDown", Style::default().fg(Color::Green)),
+            Span::raw("  History browsing mode")
         ]),
         Line::from(""),
         Line::from(vec![

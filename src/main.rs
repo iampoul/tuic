@@ -86,7 +86,7 @@ fn run_app<B: Backend>(
                     KeyCode::Delete => {
                         calculator.drop();
                     }
-                    KeyCode::PageDown => {
+                    KeyCode::Insert => {
                         calculator.swap();
                     }
                     KeyCode::Char('n') | KeyCode::Char('N') => {
@@ -129,6 +129,13 @@ fn run_app<B: Backend>(
                     }
                     KeyCode::Down => {
                         calculator.browse_stack_down();
+                    }
+                    // History browsing
+                    KeyCode::PageUp => {
+                        calculator.browse_history_up();
+                    }
+                    KeyCode::PageDown => {
+                        calculator.browse_history_down();
                     }
                     // Number input
                     KeyCode::Char(ch) => {
