@@ -70,6 +70,17 @@ cargo run --release
 - Decimals: `3.14 * 2`
 - Exponents: `2^3`
 
+### Theming
+
+The calculator supports custom themes to personalize its appearance.
+
+- **t**: Toggle the theme selection dialog.
+- **Up/Down Arrows**: Navigate through the list of available themes.
+- **Enter**: Apply the selected theme.
+- **Esc** or **t**: Close the theme selection dialog.
+
+Theme files are located in the `themes/` directory. You can create your own theme files (JSON format) and place them in this directory. The application will automatically detect and list them.
+
 ## Interface
 
 The calculator interface is divided into several sections:

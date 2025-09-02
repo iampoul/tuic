@@ -301,6 +301,21 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         ]),
         Line::from(vec![
             Span::raw("  • "),
+            Span::styled("t", Style::default().fg(calculator.current_theme.success)),
+            Span::raw("           Toggle Theme Selector"),
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::styled("Up/Down", Style::default().fg(calculator.current_theme.success)),
+            Span::raw("     Navigate Themes (in selector)"),
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::styled("Enter", Style::default().fg(calculator.current_theme.success)),
+            Span::raw("       Select Theme (in selector)"),
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
             Span::styled("Space", Style::default().fg(calculator.current_theme.success)),
             Span::raw("       Scientific notation toggle")
         ]),
