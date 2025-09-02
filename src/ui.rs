@@ -385,7 +385,7 @@ fn draw_theme_selector_dialog(f: &mut Frame, calculator: &mut Calculator) {
             .title_alignment(Alignment::Center)
             .border_style(Style::default().fg(calculator.current_theme.border)))
         .highlight_style(Style::default().bg(calculator.current_theme.highlight_bg).fg(calculator.current_theme.highlight_fg))
-        .highlight_symbol(">> "); // We can refine this later
+        .highlight_symbol("-> ");
 
     f.render_stateful_widget(theme_list, area, &mut calculator.theme_list_state);
 }
