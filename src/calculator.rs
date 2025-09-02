@@ -90,9 +90,15 @@ pub enum CalculatorError {
     InvalidComplex,
 }
 
+#[derive(Clone)]
+pub struct StackEntry {
+    pub expression: String,
+    pub result: StackValue,
+}
+
 pub struct Calculator {
     pub input: String,
-    pub stack: Vec<StackValue>,
+    pub stack: Vec<StackEntry>,
     pub error: Option<String>,
     pub history: Vec<String>,
     pub show_help: bool,
@@ -208,8 +214,8 @@ impl Calculator {
     pub fn negate(&mut self) {
         if let Some(top) = self.stack.last_mut() {
             match top {
-                StackValue::Real(r) => *r = -*r,
-                StackValue::Complex(c) => {
+                StackEntry { expression: _, result: StackValue::Real(r) } => *r = -*r,
+                StackEntry { expression: _, result: StackValue::Complex(c) } => {
                     c.real = -c.real;
                     c.imag = -c.imag;
                 }
@@ -243,8 +249,12 @@ impl Calculator {
         // Try to evaluate the input as an expression
         match self.evaluate(&self.input) {
             Ok(result) => {
-                self.stack.push(StackValue::Real(result));
-                self.history.push(format!("{} = {}", self.input, self.format_value(&self.stack.last().unwrap())));
+                let new_entry = StackEntry {
+                    expression: self.input.clone(),
+                    result: StackValue::Real(result),
+                };
+                self.stack.push(new_entry);
+                self.history.push(format!("{} = {}", self.input, self.format_stack_value(&self.stack.last().unwrap().result)));
                 self.input.clear();
                 self.error = None;
             }
@@ -285,7 +295,7 @@ impl Calculator {
         }
     }
 
-    pub fn format_value(&self, value: &StackValue) -> String {
+    pub fn format_stack_value(&self, value: &StackValue) -> String {
         match value {
             StackValue::Real(r) => self.format_real(*r),
             StackValue::Complex(c) => self.format_complex(c),
@@ -343,27 +353,27 @@ impl Calculator {
 
     // Arithmetic operations on stack
     pub fn add(&mut self) {
-        self.binary_operation(|a, b| a + b);
+        self.binary_operation('+', |a, b| a + b);
     }
 
     pub fn subtract(&mut self) {
-        self.binary_operation(|a, b| a - b);
+        self.binary_operation('-', |a, b| a - b);
     }
 
     pub fn multiply(&mut self) {
-        self.binary_operation(|a, b| a * b);
+        self.binary_operation('*', |a, b| a * b);
     }
 
     pub fn divide(&mut self) {
         if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) {
-            match (&a, &b) {
+            match (&a.result, &b.result) {
                 (StackValue::Real(x), StackValue::Real(y)) => {
                     if *y == 0.0 {
                         self.error = Some("Division by zero".to_string());
                         self.stack.push(a);
                         self.stack.push(b);
                     } else {
-                        self.stack.push(StackValue::Real(x / y));
+                        self.stack.push(StackEntry { expression: format!("({} / {})", a.expression, b.expression), result: StackValue::Real(x / y) });
                     }
                 }
                 _ => {
@@ -378,17 +388,18 @@ impl Calculator {
     }
 
     pub fn power(&mut self) {
-        self.binary_operation(|a, b| a.powf(b));
+        self.binary_operation('^', |a, b| a.powf(b));
     }
 
-    fn binary_operation<F>(&mut self, op: F)
+    fn binary_operation<F>(&mut self, op_char: char, op_fn: F)
     where
         F: Fn(f64, f64) -> f64,
     {
         if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) {
-            match (&a, &b) {
+            match (&a.result, &b.result) {
                 (StackValue::Real(x), StackValue::Real(y)) => {
-                    self.stack.push(StackValue::Real(op(*x, *y)));
+                    let new_expression = format!("({} {} {})", a.expression, op_char, b.expression);
+                    self.stack.push(StackEntry { expression: new_expression, result: StackValue::Real(op_fn(*x, *y)) });
                 }
                 _ => {
                     self.error = Some("Complex arithmetic not yet implemented".to_string());
@@ -405,7 +416,7 @@ impl Calculator {
         if !self.input.is_empty() {
             Some(self.input.clone())
         } else if let Some(top) = self.stack.last() {
-            Some(self.format_value(top))
+            Some(self.format_stack_value(&top.result))
         } else {
             None
         }

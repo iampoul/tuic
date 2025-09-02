@@ -32,16 +32,23 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .iter()
         .enumerate()
         .rev()
-        .take(chunks[1].height.saturating_sub(2) as usize)
-        .map(|(i, value)| {
-            let level = calculator.stack.len() - i - 1;
-            let formatted = calculator.format_value(value);
-            let display = if level == 0 {
-                format!("{}:  {} ←", level + 1, formatted)  // Current item
-            } else {
-                format!("{}:  {}", level + 1, formatted)
-            };
-            ListItem::new(display)
+        .map(|(i, entry)| {
+            let original_index = calculator.stack.len() - 1 - i;
+            let expression_span = Span::styled(&entry.expression, Style::default().fg(Color::LightBlue));
+            let result_span = Span::styled(calculator.format_stack_value(&entry.result), Style::default().fg(Color::White));
+
+            let mut line_spans = vec![
+                Span::raw(format!("{}: ", original_index + 1)),
+                expression_span,
+                Span::raw(" = "),
+                result_span,
+            ];
+
+            if original_index == calculator.stack_position {
+                line_spans.push(Span::raw(" ←"));
+            }
+            
+            ListItem::new(Line::from(line_spans))
         })
         .collect();
     
