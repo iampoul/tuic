@@ -144,6 +144,7 @@ pub struct Calculator {
     pub current_theme: Theme,
     pub available_themes: Vec<String>,
     pub show_theme_selector: bool,
+    pub theme_list_state: ListState,
 }
 
 impl Calculator {
@@ -188,6 +189,7 @@ impl Calculator {
             current_theme: default_theme,
             available_themes,
             show_theme_selector: false,
+            theme_list_state: ListState::default(),
         })
     }
 

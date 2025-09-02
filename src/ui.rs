@@ -223,6 +223,8 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
     // Render help dialog if active
     if calculator.show_help {
         draw_help_dialog(f, calculator);
+    } else if calculator.show_theme_selector {
+        draw_theme_selector_dialog(f, calculator);
     }
 }
 
@@ -350,6 +352,27 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         .alignment(Alignment::Left);
     
     f.render_widget(help_dialog, area);
+}
+
+fn draw_theme_selector_dialog(f: &mut Frame, calculator: &mut Calculator) {
+    let area = centered_rect(60, 50, f.area());
+
+    f.render_widget(Clear, area);
+
+    let theme_items: Vec<ListItem> = calculator.available_themes.iter().map(|theme_name| {
+        ListItem::new(Span::raw(theme_name))
+    }).collect();
+
+    let theme_list = List::new(theme_items)
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .title(" Select Theme ")
+            .title_alignment(Alignment::Center)
+            .border_style(Style::default().fg(calculator.current_theme.border)))
+        .highlight_style(Style::default().bg(calculator.current_theme.highlight_bg).fg(calculator.current_theme.highlight_fg))
+        .highlight_symbol(">> "); // We can refine this later
+
+    f.render_stateful_widget(theme_list, area, &mut calculator.theme_list_state);
 }
 
 // Helper function to create a centered rectangle
