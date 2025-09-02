@@ -1,4 +1,4 @@
-use crate::calculator::Calculator;
+use crate::calculator::{Calculator, CalculatorMode, AngleMode, BaseMode, ComplexMode}; // Added CalculatorMode, AngleMode, BaseMode, ComplexMode
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -7,11 +7,14 @@ use ratatui::{
     Frame,
 };
 
-pub fn draw(f: &mut Frame, calculator: &Calculator) {
-    let chunks = Layout::default()
+const MAX_DISPLAY_ITEMS: usize = 100; // Limit display to last 100 items
+const MAX_DISPLAY_WIDTH: usize = 50; // Limit width of displayed strings
+
+pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
+    let main_chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),  // Title with modes
+            Constraint::Length(3),  // Top row for mode boxes
             Constraint::Min(5),     // Stack display
             Constraint::Length(5),  // History display
             Constraint::Length(3),  // Input
@@ -20,23 +23,74 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         ])
         .split(f.area());
 
-    // Title with modes
-    let title_text = format!("Calculator Modes: {}", calculator.get_mode_string());
-    let title = Paragraph::new(title_text)
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
-        .block(Block::default().borders(Borders::ALL).title("Calculator"));
-    f.render_widget(title, chunks[0]);
+    let mode_chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(25), // Mode
+            Constraint::Percentage(25), // Angle
+            Constraint::Percentage(25), // Base
+            Constraint::Percentage(25), // Complex
+        ])
+        .split(main_chunks[0]); // Split the top row
+
+    // Mode Box
+    let mode_text = match calculator.mode {
+        CalculatorMode::RPN => Span::styled("RPN", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+        CalculatorMode::Infix => Span::styled("INFIX", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+    };
+    let mode_paragraph = Paragraph::new(Line::from(mode_text)) // Removed Span::raw("Mode: ")
+        .block(Block::default().borders(Borders::ALL).title("Mode"));
+    f.render_widget(mode_paragraph, mode_chunks[0]);
+
+    // Angle Box
+    let angle_text = match calculator.angle_mode {
+        AngleMode::Radians => Span::styled("RAD", Style::default().fg(Color::LightBlue)),
+        AngleMode::Degrees => Span::styled("DEG", Style::default().fg(Color::LightCyan)),
+    };
+    let angle_paragraph = Paragraph::new(Line::from(angle_text)) // Removed Span::raw("Angle: ")
+        .block(Block::default().borders(Borders::ALL).title("Angle"));
+    f.render_widget(angle_paragraph, mode_chunks[1]);
+
+    // Base Box
+    let base_text = match calculator.base_mode {
+        BaseMode::Decimal => Span::styled("DEC", Style::default().fg(Color::LightGreen)),
+        BaseMode::Hexadecimal => Span::styled("HEX", Style::default().fg(Color::LightMagenta)),
+        BaseMode::Binary => Span::styled("BIN", Style::default().fg(Color::LightRed)),
+    };
+    let base_paragraph = Paragraph::new(Line::from(base_text)) // Removed Span::raw("Base: ")
+        .block(Block::default().borders(Borders::ALL).title("Base"));
+    f.render_widget(base_paragraph, mode_chunks[2]);
+
+    // Complex Box
+    let complex_text = match calculator.complex_mode {
+        ComplexMode::Rectangular => Span::styled("REC", Style::default().fg(Color::LightYellow)),
+        ComplexMode::Polar => Span::styled("POL", Style::default().fg(Color::LightRed)),
+    };
+    let complex_paragraph = Paragraph::new(Line::from(complex_text)) // Removed Span::raw("Complex: ")
+        .block(Block::default().borders(Borders::ALL).title("Complex"));
+    f.render_widget(complex_paragraph, mode_chunks[3]);
 
     // Stack display
-    let stack_items: Vec<ListItem> = calculator
-        .stack
+    let stack_display_slice = if calculator.stack.len() > MAX_DISPLAY_ITEMS {
+        &calculator.stack[calculator.stack.len() - MAX_DISPLAY_ITEMS..]
+    } else {
+        &calculator.stack[..]
+    };
+
+    let stack_items: Vec<ListItem> = stack_display_slice
         .iter()
         .enumerate()
-        .rev()
+        .rev() // Still want top at bottom
         .map(|(i, entry)| {
-            let original_index = calculator.stack.len() - 1 - i;
-            let expression_span = Span::styled(&entry.expression, Style::default().fg(Color::LightBlue));
-            let result_span = Span::styled(calculator.format_stack_value(&entry.result), Style::default().fg(Color::White));
+            // The original_index needs to be relative to the full stack, but adjusted for the slice.
+            let full_stack_start_index = calculator.stack.len().saturating_sub(stack_display_slice.len());
+            let original_index = full_stack_start_index + (stack_display_slice.len() - 1 - i);
+
+            let truncated_expression = truncate_string(&entry.expression, MAX_DISPLAY_WIDTH);
+            let truncated_result = truncate_string(&calculator.format_stack_value(&entry.result), MAX_DISPLAY_WIDTH);
+
+            let expression_span = Span::styled(truncated_expression, Style::default().fg(Color::LightBlue));
+            let result_span = Span::styled(truncated_result, Style::default().fg(Color::White));
 
             let mut line_spans = vec![
                 Span::raw(format!("{}: ", original_index + 1)),
@@ -56,17 +110,28 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
     let stack_title = format!("Stack ({} items)", calculator.stack.len());
     let stack = List::new(stack_items)
         .block(Block::default().borders(Borders::ALL).title(stack_title))
+        .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
+        .highlight_symbol(">> ")
         .style(Style::default().fg(Color::White));
-    f.render_widget(stack, chunks[1]);
+    f.render_stateful_widget(stack, main_chunks[1], &mut calculator.stack_list_state);
 
     // History display
-    let history_items: Vec<ListItem> = calculator
-        .history
+    let history_display_slice = if calculator.history.len() > MAX_DISPLAY_ITEMS {
+        &calculator.history[calculator.history.len() - MAX_DISPLAY_ITEMS..]
+    } else {
+        &calculator.history[..]
+    };
+
+    let history_items: Vec<ListItem> = history_display_slice
         .iter()
         .enumerate()
         .map(|(i, entry)| {
-            let mut item = ListItem::new(entry.clone());
-            if i == calculator.history_position {
+            let full_history_start_index = calculator.history.len().saturating_sub(history_display_slice.len());
+            let original_index = full_history_start_index + i; // Correct index for history
+
+            let truncated_entry = truncate_string(entry, MAX_DISPLAY_WIDTH);
+            let mut item = ListItem::new(truncated_entry);
+            if original_index == calculator.history_position {
                 item = item.style(Style::default().add_modifier(Modifier::REVERSED));
             }
             item
@@ -76,8 +141,10 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
     let history_title = format!("History ({} items)", calculator.history.len());
     let history = List::new(history_items)
         .block(Block::default().borders(Borders::ALL).title(history_title))
+        .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
+        .highlight_symbol(">> ")
         .style(Style::default().fg(Color::DarkGray));
-    f.render_widget(history, chunks[2]);
+    f.render_stateful_widget(history, main_chunks[2], &mut calculator.history_list_state);
 
     // Input
     let input_text = if calculator.input.is_empty() {
@@ -96,7 +163,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .style(input_style)
         .block(Block::default().borders(Borders::ALL).title("Input"))
         .wrap(Wrap { trim: true });
-    f.render_widget(input, chunks[3]);
+    f.render_widget(input, main_chunks[3]);
 
     // Status: Show current value or error
     let (status_text, status_style) = if let Some(error) = &calculator.error {
@@ -111,7 +178,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
         .style(status_style)
         .block(Block::default().borders(Borders::ALL).title("Status"))
         .wrap(Wrap { trim: true });
-    f.render_widget(status_widget, chunks[4]);
+    f.render_widget(status_widget, main_chunks[4]);
 
     // Help
     let help_text = vec![
@@ -132,6 +199,8 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
             Span::raw(": Clear All"),
         ]),
         Line::from(vec![
+            Span::styled("m", Style::default().fg(Color::Yellow)),
+            Span::raw(": Toggle RPN/Infix Mode | "),
             Span::raw("Operators: "),
             Span::styled("+, -, *, /, ^", Style::default().fg(Color::Cyan)),
             Span::raw(" | Parentheses: "),
@@ -148,7 +217,7 @@ pub fn draw(f: &mut Frame, calculator: &Calculator) {
     let help = Paragraph::new(help_text)
         .block(Block::default().borders(Borders::ALL).title("Quick Help (Press 'h' for more)"))
         .wrap(Wrap { trim: true });
-    f.render_widget(help, chunks[5]);
+    f.render_widget(help, main_chunks[5]);
 
     // Render help dialog if active
     if calculator.show_help {
@@ -173,7 +242,16 @@ fn draw_help_dialog(f: &mut Frame) {
             Span::styled("📋 Calculator Modes:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
-            Span::raw("  angle: RAD/DEG  base: HEX/DEC/BIN  complex: REC/POL")
+            Span::raw("  Mode: RPN/INFIX (toggle with 'm')")
+        ]),
+        Line::from(vec![
+            Span::raw("  Angle: RAD/DEG (toggle with F1)")
+        ]),
+        Line::from(vec![
+            Span::raw("  Base: DEC/HEX/BIN (cycle with F2)")
+        ]),
+        Line::from(vec![
+            Span::raw("  Complex: REC/POL (toggle with F3)")
         ]),
         Line::from(""),
         Line::from(vec![
@@ -182,7 +260,7 @@ fn draw_help_dialog(f: &mut Frame) {
         Line::from(vec![
             Span::raw("  • "),
             Span::styled("Enter", Style::default().fg(Color::Green)),
-            Span::raw("       Push number to stack / Duplicate if empty")
+            Span::raw("       RPN: Push number / Duplicate. Infix: Evaluate expression.")
         ]),
         Line::from(vec![
             Span::raw("  • "),
@@ -215,6 +293,11 @@ fn draw_help_dialog(f: &mut Frame) {
         ]),
         Line::from(vec![
             Span::raw("  • "),
+            Span::styled("m", Style::default().fg(Color::Green)),
+            Span::raw("           Toggle RPN/Infix Mode")
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
             Span::styled("Space", Style::default().fg(Color::Green)),
             Span::raw("       Scientific notation toggle")
         ]),
@@ -238,10 +321,10 @@ fn draw_help_dialog(f: &mut Frame) {
             Span::styled("💡 Usage Tips:", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
-            Span::raw("  • Enter numbers, then use operators for RPN-style calculation")
+            Span::raw("  • RPN Mode: Enter numbers, then use operators. Example: '5', Enter, '3', Enter, '+'")
         ]),
         Line::from(vec![
-            Span::raw("  • Example: Type '5', Enter, '3', Enter, '+' to calculate 5+3")
+            Span::raw("  • Infix Mode: Type full expression, then Enter. Example: '2 + 3 * 4', Enter")
         ]),
         Line::from(vec![
             Span::raw("  • Switch to HEX mode and enter '0xFF' for hexadecimal")
@@ -287,5 +370,13 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
+}
+
+fn truncate_string(s: &str, max_len: usize) -> String {
+    if s.len() > max_len && max_len >= 3 { // Ensure max_len is at least 3 for "..."
+        format!("{}...", &s[..max_len - 3])
+    } else {
+        s.to_string()
+    }
 }
 

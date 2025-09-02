@@ -4,12 +4,16 @@ A terminal-based calculator built with Rust and ratatui. This calculator provide
 
 ## Features
 
+- **Dual Modes (RPN & Infix)**: Switch between Reverse Polish Notation and standard Infix notation.
 - **Expression Evaluation**: Supports basic arithmetic operations (+, -, *, /)
 - **Advanced Operations**: Exponentiation (^)
-- **Parentheses**: Full support for parentheses and proper operator precedence
-- **History**: Keeps track of your calculations
-- **Error Handling**: Clear error messages for invalid expressions
-- **Keyboard Navigation**: Full keyboard control with intuitive shortcuts
+- **Parentheses**: Full support for parentheses and proper operator precedence (Infix mode)
+- **History**: Keeps track of your calculations and RPN operations.
+- **Error Handling**: Clear error messages for invalid expressions.
+- **Keyboard Navigation**: Full keyboard control with intuitive shortcuts.
+- **Mode Switching**: Toggle between Angle (Radians/Degrees), Base (Decimal/Hexadecimal/Binary), and Complex (Rectangular/Polar) number modes.
+- **Scrolling**: Stack and History views are scrollable for long lists.
+- **Truncation**: Long expressions/results are truncated with ellipsis for better readability.
 
 ## Supported Operations
 
@@ -18,7 +22,7 @@ A terminal-based calculator built with Rust and ratatui. This calculator provide
 - Multiplication: `*`
 - Division: `/`
 - Exponentiation: `^`
-- Parentheses: `(` and `)`
+- Parentheses: `(` and `)` (primarily for Infix mode)
 - Decimal numbers: `3.14`
 
 ## Installation
@@ -40,30 +44,42 @@ cargo run --release
 
 ### Controls
 
-- **Type numbers and operators**: Just start typing your expression
-- **Enter**: Calculate the current expression
-- **C**: Clear current input
-- **Ctrl+C**: Clear all (input, result, and history)
-- **Backspace**: Delete last character
-- **q** or **Esc**: Quit the calculator
+- **Type numbers and operators**: Just start typing your expression.
+- **Enter**:
+    - **RPN Mode**: Pushes the current number to the stack. If input is empty, duplicates the top stack item.
+    - **Infix Mode**: Evaluates the current expression.
+- **C**: Clear current input.
+- **Ctrl+C**: Clear all (input, stack, and history).
+- **Backspace**: Delete last character.
+- **q** or **Esc**: Quit the calculator.
+- **m**: Toggle between RPN and Infix modes.
+- **F1**: Toggle Angle mode (Radians/Degrees).
+- **F2**: Cycle Base mode (Decimal/Hexadecimal/Binary).
+- **F3**: Toggle Complex mode (Rectangular/Polar).
+- **Up/Down Arrows**: Browse and scroll the stack.
+- **PageUp/PageDown**: Browse and scroll the history.
 
 ### Example Calculations
 
-- Simple arithmetic: `2 + 3 * 4`
-- With parentheses: `(2 + 3) * 4`
+- **RPN Mode**:
+    - `5 Enter 3 Enter +` (Calculates 5 + 3 = 8)
+    - `10 Enter 2 Enter / 4 Enter *` (Calculates (10 / 2) * 4 = 20)
+- **Infix Mode**:
+    - `2 + 3 * 4` (Calculates 2 + (3 * 4) = 14)
+    - `(2 + 3) * 4` (Calculates (2 + 3) * 4 = 20)
 - Decimals: `3.14 * 2`
 - Exponents: `2^3`
-- Complex expressions: `(5 + 3) * 2^2 / 4`
 
 ## Interface
 
 The calculator interface is divided into several sections:
 
-- **Title**: Shows "TUI Calculator"
-- **History**: Displays your previous calculations
-- **Input**: Shows your current expression
-- **Output**: Displays results or error messages
-- **Help**: Shows available keyboard shortcuts
+- **Mode Boxes (Top Row)**: Displays the current calculator mode (RPN/Infix), Angle mode, Base mode, and Complex mode in separate, colored boxes.
+- **Stack**: Shows the current numbers on the stack. Scrollable for long lists.
+- **History**: Displays your previous calculations and RPN operations. Scrollable for long lists.
+- **Input**: Shows your current expression.
+- **Status**: Displays results or error messages.
+- **Help**: Shows available keyboard shortcuts (press 'h' to toggle a detailed help dialog).
 
 ## Error Handling
 
@@ -72,6 +88,7 @@ The calculator will show helpful error messages for:
 - Division by zero
 - Mismatched parentheses
 - Unknown operators
+- Invalid numbers for current base mode
 
 ## Building from Source
 

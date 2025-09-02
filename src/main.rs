@@ -11,10 +11,25 @@ use ratatui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
 };
-use std::{error::Error, io};
+use std::{error::Error, io, io::Write}; // Added io::Write
+
+struct TuiGuard;
+
+impl Drop for TuiGuard {
+    fn drop(&mut self) {
+        disable_raw_mode().expect("Failed to disable raw mode");
+        execute!(
+            io::stdout(),
+            LeaveAlternateScreen,
+            DisableMouseCapture
+        ).expect("Failed to restore terminal");
+        io::stdout().flush().expect("Failed to flush stdout");
+    }
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Setup terminal
+    let _guard = TuiGuard; // This ensures drop is called on exit
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -27,14 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Run the app
     let res = run_app(&mut terminal, &mut calculator);
 
-    // Restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
+    terminal.show_cursor()?; // Keep show_cursor here, as it's specific to the terminal instance
 
     if let Err(err) = res {
         println!("{err:?}");
@@ -92,24 +100,6 @@ fn run_app<B: Backend>(
                     KeyCode::Char('n') | KeyCode::Char('N') => {
                         calculator.negate();
                     }
-                    // Arithmetic operations - now handled by push_char and then evaluation on Enter
-                    // The individual operator key presses will just add the character to the input string.
-                    // The actual calculation will happen when 'Enter' is pressed.
-                    KeyCode::Char('+') => {
-                        calculator.push_char('+');
-                    }
-                    KeyCode::Char('-') => {
-                        calculator.push_char('-');
-                    }
-                    KeyCode::Char('*') => {
-                        calculator.push_char('*');
-                    }
-                    KeyCode::Char('/') => {
-                        calculator.push_char('/');
-                    }
-                    KeyCode::Char('^') => {
-                        calculator.push_char('^');
-                    }
                     // Mode switching (using F-function keys)
                     KeyCode::F(1) => {
                         calculator.toggle_angle_mode();
@@ -119,6 +109,9 @@ fn run_app<B: Backend>(
                     }
                     KeyCode::F(3) => {
                         calculator.toggle_complex_mode();
+                    }
+                    KeyCode::Char('m') | KeyCode::Char('M') => { // Toggle RPN/Infix mode
+                        calculator.toggle_mode();
                     }
                     KeyCode::Char(' ') => {
                         calculator.toggle_abbreviation();
@@ -137,11 +130,9 @@ fn run_app<B: Backend>(
                     KeyCode::PageDown => {
                         calculator.browse_history_down();
                     }
-                    // Number input
+                    // All character input (numbers and operators)
                     KeyCode::Char(ch) => {
-                        if ch.is_ascii_digit() || ".-abcdefABCDEFx()^*/+-".contains(ch) {
-                            calculator.push_char(ch);
-                        }
+                        calculator.handle_char_input(ch);
                     }
                     _ => {}
                 }
