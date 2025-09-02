@@ -2,9 +2,11 @@ use std::collections::VecDeque;
 use std::f64::consts::PI;
 use std::fmt;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use serde_json;
 use anyhow::{Result, anyhow};
+use dirs;
 use ratatui::widgets::ListState; // Added
 use crate::theme::Theme;
 
@@ -149,10 +151,24 @@ pub struct Calculator {
 
 impl Calculator {
     pub fn new() -> Result<Self, anyhow::Error> {
-        let default_theme_path = "themes/default.json";
-        let default_theme = match fs::read_to_string(default_theme_path) {
+        let mut current_theme_name = "default".to_string();
+        let config_dir = dirs::config_dir()
+            .ok_or_else(|| anyhow!("Could not find config directory"))?;
+        let app_config_dir = config_dir.join("tui-calculator");
+        let theme_config_path = app_config_dir.join("theme.txt");
+
+        if let Ok(theme_name_from_file) = fs::read_to_string(&theme_config_path) {
+            current_theme_name = theme_name_from_file.trim().to_string();
+        }
+
+        let initial_theme = match fs::read_to_string(format!("themes/{}.json", current_theme_name)) {
             Ok(content) => serde_json::from_str(&content)?,
-            Err(e) => return Err(anyhow!("Failed to read default theme {}: {}", default_theme_path, e)),
+            Err(_) => {
+                // Fallback to default theme if the saved theme is not found or invalid
+                let default_theme_path = "themes/default.json";
+                let content = fs::read_to_string(default_theme_path)?;
+                serde_json::from_str(&content)?
+            }
         };
 
         let mut available_themes = Vec::new();
@@ -186,7 +202,7 @@ impl Calculator {
             mode: CalculatorMode::RPN, // Initialize to RPN
             stack_list_state: ListState::default(), // Initialize ListState
             history_list_state: ListState::default(), // Initialize ListState
-            current_theme: default_theme,
+            current_theme: initial_theme,
             available_themes,
             show_theme_selector: false,
             theme_list_state: ListState::default(),
@@ -301,6 +317,16 @@ impl Calculator {
         let content = fs::read_to_string(&theme_path)?;
         let theme: Theme = serde_json::from_str(&content)?;
         self.current_theme = theme;
+
+        // Save selected theme to config file
+        let config_dir = dirs::config_dir()
+            .ok_or_else(|| anyhow!("Could not find config directory"))?;
+        let app_config_dir = config_dir.join("tui-calculator");
+        fs::create_dir_all(&app_config_dir)?;
+        let theme_config_path = app_config_dir.join("theme.txt");
+        let mut file = fs::File::create(&theme_config_path)?;
+        file.write_all(theme_name.as_bytes())?;
+
         Ok(())
     }
 
