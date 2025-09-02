@@ -230,17 +230,17 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
 
 fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
     // Create a centered popup area
-    let area = centered_rect(60, 50, f.area());
+    let area = centered_rect(70, 70, f.area());
     
     // Clear the background
     f.render_widget(Clear, area);
     
     let help_content = vec![
-        Line::from(""), // Top padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Advanced Calculator Help", Style::default().fg(calculator.current_theme.info).add_modifier(Modifier::BOLD))
         ]),
-        Line::from(""), // Padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Calculator Modes:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
@@ -256,7 +256,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         Line::from(vec![
             Span::raw("  Complex: REC/POL (toggle with F3)")
         ]),
-        Line::from(""), // Padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Common Operations:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
@@ -290,7 +290,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
             Span::styled("n", Style::default().fg(calculator.current_theme.success)),
             Span::raw("           Negation")
         ]),
-        Line::from(""), // Padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Miscellaneous:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
@@ -334,7 +334,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
             Span::styled("PageUp/PageDown", Style::default().fg(calculator.current_theme.success)),
             Span::raw("  History browsing mode")
         ]),
-        Line::from(""), // Padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Usage Tips:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
@@ -350,11 +350,11 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         Line::from(vec![
             Span::raw("  • Switch to BIN mode and enter '0b1010' for binary")
         ]),
-        Line::from(""), // Padding
+        Line::from(""),
         Line::from(vec![
             Span::styled("Press 'h' or Esc to close this dialog", Style::default().fg(calculator.current_theme.input_placeholder).add_modifier(Modifier::ITALIC))
         ]),
-        Line::from(""), // Bottom padding
+        Line::from(""),
     ];
     
     let help_dialog = Paragraph::new(help_content)
