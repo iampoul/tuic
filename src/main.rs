@@ -81,6 +81,11 @@ fn run_app<B: Backend>(
                         } else {
                             calculator.theme_list_state.select(Some(calculator.available_themes.len() - 1));
                         }
+                        // Preview theme
+                        if let Some(selected_index) = calculator.theme_list_state.selected() {
+                            let theme_name = calculator.available_themes[selected_index].clone();
+                            calculator.preview_theme(&theme_name);
+                        }
                     }
                     KeyCode::Down => {
                         // Navigate down in theme list
@@ -89,6 +94,11 @@ fn run_app<B: Backend>(
                             calculator.theme_list_state.select(Some(selected + 1));
                         } else {
                             calculator.theme_list_state.select(Some(0));
+                        }
+                        // Preview theme
+                        if let Some(selected_index) = calculator.theme_list_state.selected() {
+                            let theme_name = calculator.available_themes[selected_index].clone();
+                            calculator.preview_theme(&theme_name);
                         }
                     }
                     KeyCode::Enter => {

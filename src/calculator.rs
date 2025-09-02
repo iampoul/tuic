@@ -304,6 +304,15 @@ impl Calculator {
         Ok(())
     }
 
+    pub fn preview_theme(&mut self, theme_name: &str) {
+        let theme_path = format!("themes/{}.json", theme_name);
+        if let Ok(content) = fs::read_to_string(&theme_path) {
+            if let Ok(theme) = serde_json::from_str::<Theme>(&content) {
+                self.current_theme = theme;
+            }
+        }
+    }
+
     // Stack operations
     pub fn drop(&mut self) {
         if !self.stack.is_empty() {
