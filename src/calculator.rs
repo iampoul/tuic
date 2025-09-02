@@ -310,6 +310,15 @@ impl Calculator {
 
     pub fn toggle_theme_selector(&mut self) {
         self.show_theme_selector = !self.show_theme_selector;
+        if self.show_theme_selector {
+            // When opening the selector, pre-select the current theme
+            if let Some(index) = self.available_themes.iter().position(|name| name == &self.current_theme.name) {
+                self.theme_list_state.select(Some(index));
+            } else {
+                // If current theme not found in available themes (e.g., deleted), select first
+                self.theme_list_state.select(Some(0));
+            }
+        }
     }
 
     pub fn set_theme(&mut self, theme_name: &str) -> Result<()> {
