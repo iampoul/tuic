@@ -1,0 +1,19 @@
+{
+  "name": "Solarized Light",
+  "background": "#fdf6e3",
+  "foreground": "#586e75",
+  "border": "#839496",
+  "title": "#268bd2",
+  "highlight_bg": "#eee8d5",
+  "highlight_fg": "#586e75",
+  "error": "#dc322f",
+  "success": "#859900",
+  "warning": "#b58900",
+  "info": "#2aa198",
+  "input_text": "#586e75",
+  "input_placeholder": "#93a1a1",
+  "stack_expression": "#268bd2",
+  "stack_result": "#6c71c4",
+  "stack_line_number": "#93a1a1",
+  "history_text": "#93a1a1"
+}

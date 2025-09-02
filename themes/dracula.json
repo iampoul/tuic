@@ -1,0 +1,19 @@
+{
+  "name": "Dracula",
+  "background": "#282a36",
+  "foreground": "#f8f8f2",
+  "border": "#6272a4",
+  "title": "#bd93f9",
+  "highlight_bg": "#44475a",
+  "highlight_fg": "#f8f8f2",
+  "error": "#ff5555",
+  "success": "#50fa7b",
+  "warning": "#f1fa8c",
+  "info": "#8be9fd",
+  "input_text": "#f8f8f2",
+  "input_placeholder": "#6272a4",
+  "stack_expression": "#50fa7b",
+  "stack_result": "#f1fa8c",
+  "stack_line_number": "#6272a4",
+  "history_text": "#6272a4"
+}

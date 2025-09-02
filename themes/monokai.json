@@ -1,0 +1,19 @@
+{
+  "name": "Monokai",
+  "background": "#272822",
+  "foreground": "#f8f8f2",
+  "border": "#75715e",
+  "title": "#a6e22e",
+  "highlight_bg": "#49483e",
+  "highlight_fg": "#f8f8f2",
+  "error": "#f92672",
+  "success": "#a6e22e",
+  "warning": "#e6db74",
+  "info": "#66d9ef",
+  "input_text": "#f8f8f2",
+  "input_placeholder": "#75715e",
+  "stack_expression": "#a6e22e",
+  "stack_result": "#f92672",
+  "stack_line_number": "#75715e",
+  "history_text": "#75715e"
+}
