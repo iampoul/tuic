@@ -143,6 +143,7 @@ pub struct Calculator {
     pub history_list_state: ListState, // New field for history scrolling
     pub current_theme: Theme,
     pub available_themes: Vec<String>,
+    pub show_theme_selector: bool,
 }
 
 impl Calculator {
@@ -186,6 +187,7 @@ impl Calculator {
             history_list_state: ListState::default(), // Initialize ListState
             current_theme: default_theme,
             available_themes,
+            show_theme_selector: false,
         })
     }
 
@@ -286,6 +288,10 @@ impl Calculator {
         };
         self.error = None; // Clear any error when mode changes
         self.input.clear(); // Clear input when mode changes
+    }
+
+    pub fn toggle_theme_selector(&mut self) {
+        self.show_theme_selector = !self.show_theme_selector;
     }
 
     // Stack operations

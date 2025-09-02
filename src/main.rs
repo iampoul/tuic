@@ -114,6 +114,9 @@ fn run_app<B: Backend>(
                     KeyCode::Char('m') | KeyCode::Char('M') => { // Toggle RPN/Infix mode
                         calculator.toggle_mode();
                     }
+                    KeyCode::Char('t') | KeyCode::Char('T') => { // Toggle theme selector
+                        calculator.toggle_theme_selector();
+                    }
                     KeyCode::Char(' ') => {
                         calculator.toggle_abbreviation();
                     }
