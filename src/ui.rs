@@ -230,7 +230,7 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
 
 fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
     // Create a centered popup area
-    let area = centered_rect(80, 60, f.area());
+    let area = centered_rect(70, 70, f.area());
     
     // Clear the background
     f.render_widget(Clear, area);
@@ -238,11 +238,11 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
     let help_content = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled("🧮 Advanced Calculator Help", Style::default().fg(calculator.current_theme.info).add_modifier(Modifier::BOLD))
+            Span::styled("Advanced Calculator Help", Style::default().fg(calculator.current_theme.info).add_modifier(Modifier::BOLD))
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("📋 Calculator Modes:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
+            Span::styled("Calculator Modes:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
             Span::raw("  Mode: RPN/INFIX (toggle with 'm')")
@@ -258,7 +258,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("⌨️  Common Operations:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
+            Span::styled("Common Operations:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
             Span::raw("  • "),
@@ -292,7 +292,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("🔧 Miscellaneous:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
+            Span::styled("Miscellaneous:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
             Span::raw("  • "),
@@ -336,7 +336,7 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         ]),
         Line::from(""),
         Line::from(vec![
-            Span::styled("💡 Usage Tips:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
+            Span::styled("Usage Tips:", Style::default().fg(calculator.current_theme.warning).add_modifier(Modifier::BOLD))
         ]),
         Line::from(vec![
             Span::raw("  • RPN Mode: Enter numbers, then use operators. Example: '5', Enter, '3', Enter, '+'")
