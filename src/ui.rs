@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap, block::Padding},
     Frame,
     prelude::Stylize,
 };
@@ -230,13 +230,12 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
 
 fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
     // Create a centered popup area
-    let area = centered_rect(70, 70, f.area());
+    let area = centered_rect(80, 80, f.area());
     
     // Clear the background
     f.render_widget(Clear, area);
     
     let help_content = vec![
-        Line::from(""),
         Line::from(vec![
             Span::styled("Advanced Calculator Help", Style::default().fg(calculator.current_theme.info).add_modifier(Modifier::BOLD))
         ]),
@@ -354,7 +353,6 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
         Line::from(vec![
             Span::styled("Press 'h' or Esc to close this dialog", Style::default().fg(calculator.current_theme.input_placeholder).add_modifier(Modifier::ITALIC))
         ]),
-        Line::from(""),
     ];
     
     let help_dialog = Paragraph::new(help_content)
@@ -362,7 +360,8 @@ fn draw_help_dialog(f: &mut Frame, calculator: &mut Calculator) {
             .borders(Borders::ALL)
             .title(" Help ")
             .title_alignment(Alignment::Center)
-            .border_style(Style::default().fg(calculator.current_theme.border)))
+            .border_style(Style::default().fg(calculator.current_theme.border))
+            .padding(Padding::uniform(2)))
         .wrap(Wrap { trim: false })
         .alignment(Alignment::Left);
     
