@@ -344,7 +344,27 @@ impl Calculator {
         match self.mode {
             CalculatorMode::RPN => {
                 if !self.input.is_empty() {
-                    // Push the current number to the stack
+                    // Check if the input matches a history entry's expression part
+                    if let Some(history_entry) = self.history.iter().find(|entry| entry.starts_with(&self.input)) {
+                        // Extract the result part (after " = ")
+                        if let Some(result_str) = history_entry.split(" = ").nth(1) {
+                            if let Ok(num) = result_str.parse::<f64>() {
+                                let new_entry = StackEntry {
+                                    expression: result_str.to_string(),
+                                    result: StackValue::Real(num),
+                                };
+                                if self.stack.len() >= MAX_STACK_SIZE {
+                                    self.stack.remove(0);
+                                }
+                                self.stack.push(new_entry);
+                                self.input.clear();
+                                self.error = None;
+                                return;
+                            }
+                        }
+                    }
+
+                    // If not a history recall, push the current number to the stack
                     if let Err(e) = self.parse_current_input_to_stack_entry() {
                         self.error = Some(format!("{}", e));
                         return;

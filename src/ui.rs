@@ -89,11 +89,11 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
             let truncated_expression = truncate_string(&entry.expression, MAX_DISPLAY_WIDTH);
             let truncated_result = truncate_string(&calculator.format_stack_value(&entry.result), MAX_DISPLAY_WIDTH);
 
-            let expression_span = Span::styled(truncated_expression, Style::default().fg(Color::LightBlue));
-            let result_span = Span::styled(truncated_result, Style::default().fg(Color::White));
+            let expression_span = Span::styled(truncated_expression, Style::default().fg(Color::Blue));
+            let result_span = Span::styled(truncated_result, Style::default().fg(Color::Gray));
 
             let mut line_spans = vec![
-                Span::raw(format!("{}: ", original_index + 1)),
+                Span::styled(format!("{} ", original_index + 1), Style::default().fg(Color::DarkGray)),
                 expression_span,
                 Span::raw(" = "),
                 result_span,
@@ -110,8 +110,7 @@ pub fn draw(f: &mut Frame, calculator: &mut Calculator) {
     let stack_title = format!("Stack ({} items)", calculator.stack.len());
     let stack = List::new(stack_items)
         .block(Block::default().borders(Borders::ALL).title(stack_title))
-        .highlight_style(Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD))
-        .highlight_symbol(">> ")
+        .highlight_style(Style::default().bg(Color::Rgb(50, 50, 50)))
         .style(Style::default().fg(Color::White));
     f.render_stateful_widget(stack, main_chunks[1], &mut calculator.stack_list_state);
 
