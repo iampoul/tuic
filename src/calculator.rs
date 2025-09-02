@@ -296,6 +296,14 @@ impl Calculator {
         self.show_theme_selector = !self.show_theme_selector;
     }
 
+    pub fn set_theme(&mut self, theme_name: &str) -> Result<()> {
+        let theme_path = format!("themes/{}.json", theme_name);
+        let content = fs::read_to_string(&theme_path)?;
+        let theme: Theme = serde_json::from_str(&content)?;
+        self.current_theme = theme;
+        Ok(())
+    }
+
     // Stack operations
     pub fn drop(&mut self) {
         if !self.stack.is_empty() {

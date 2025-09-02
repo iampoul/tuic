@@ -71,6 +71,41 @@ fn run_app<B: Backend>(
                     }
                     _ => {}
                 }
+            } else if calculator.show_theme_selector {
+                match key.code {
+                    KeyCode::Up => {
+                        // Navigate up in theme list
+                        let selected = calculator.theme_list_state.selected().unwrap_or(0);
+                        if selected > 0 {
+                            calculator.theme_list_state.select(Some(selected - 1));
+                        } else {
+                            calculator.theme_list_state.select(Some(calculator.available_themes.len() - 1));
+                        }
+                    }
+                    KeyCode::Down => {
+                        // Navigate down in theme list
+                        let selected = calculator.theme_list_state.selected().unwrap_or(0);
+                        if selected < calculator.available_themes.len() - 1 {
+                            calculator.theme_list_state.select(Some(selected + 1));
+                        } else {
+                            calculator.theme_list_state.select(Some(0));
+                        }
+                    }
+                    KeyCode::Enter => {
+                        // Select theme
+                        if let Some(selected_index) = calculator.theme_list_state.selected() {
+                            let theme_name = calculator.available_themes[selected_index].clone();
+                            if let Err(e) = calculator.set_theme(&theme_name) {
+                                calculator.error = Some(format!("Failed to set theme: {}", e));
+                            }
+                        }
+                        calculator.toggle_theme_selector(); // Close selector after selection
+                    }
+                    KeyCode::Esc | KeyCode::Char('t') | KeyCode::Char('T') => {
+                        calculator.toggle_theme_selector(); // Close selector
+                    }
+                    _ => {}
+                }
             } else {
                 match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
