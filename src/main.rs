@@ -1,5 +1,6 @@
 mod calculator;
 mod ui;
+mod theme;
 
 use calculator::Calculator;
 use crossterm::{
@@ -37,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     // Create calculator
-    let mut calculator = Calculator::new();
+    let mut calculator = Calculator::new()?;
 
     // Run the app
     let res = run_app(&mut terminal, &mut calculator);

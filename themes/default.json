@@ -1,0 +1,19 @@
+{
+  "name": "Default Theme",
+  "background": "black",
+  "foreground": "white",
+  "border": "cyan",
+  "title": "cyan",
+  "highlight_bg": "rgb(50, 50, 50)",
+  "highlight_fg": "white",
+  "error": "red",
+  "success": "green",
+  "warning": "yellow",
+  "info": "blue",
+  "input_text": "white",
+  "input_placeholder": "darkgray",
+  "stack_expression": "blue",
+  "stack_result": "gray",
+  "stack_line_number": "darkgray",
+  "history_text": "darkgray"
+}

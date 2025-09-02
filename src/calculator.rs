@@ -1,7 +1,12 @@
 use std::collections::VecDeque;
 use std::f64::consts::PI;
 use std::fmt;
+use std::fs;
+use std::path::Path;
+use serde_json;
+use anyhow::{Result, anyhow};
 use ratatui::widgets::ListState; // Added
+use crate::theme::Theme;
 
 const MAX_STACK_SIZE: usize = 1000;
 const MAX_HISTORY_SIZE: usize = 1000;
@@ -136,11 +141,35 @@ pub struct Calculator {
     pub mode: CalculatorMode, // New field
     pub stack_list_state: ListState, // New field for stack scrolling
     pub history_list_state: ListState, // New field for history scrolling
+    pub current_theme: Theme,
+    pub available_themes: Vec<String>,
 }
 
 impl Calculator {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> Result<Self, anyhow::Error> {
+        let default_theme_path = "themes/default.json";
+        let default_theme = match fs::read_to_string(default_theme_path) {
+            Ok(content) => serde_json::from_str(&content)?,
+            Err(e) => return Err(anyhow!("Failed to read default theme {}: {}", default_theme_path, e)),
+        };
+
+        let mut available_themes = Vec::new();
+        let themes_dir = "themes";
+        if Path::new(themes_dir).is_dir() {
+            for entry in fs::read_dir(themes_dir)? {
+                let entry = entry?;
+                let path = entry.path();
+                if path.is_file() {
+                    if let Some(file_name) = path.file_stem() {
+                        if let Some(name_str) = file_name.to_str() {
+                            available_themes.push(name_str.to_string());
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(Self {
             input: String::new(),
             stack: Vec::new(),
             error: None,
@@ -155,7 +184,9 @@ impl Calculator {
             mode: CalculatorMode::RPN, // Initialize to RPN
             stack_list_state: ListState::default(), // Initialize ListState
             history_list_state: ListState::default(), // Initialize ListState
-        }
+            current_theme: default_theme,
+            available_themes,
+        })
     }
 
     pub fn handle_char_input(&mut self, input_char: char) {
