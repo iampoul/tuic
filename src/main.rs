@@ -92,36 +92,23 @@ fn run_app<B: Backend>(
                     KeyCode::Char('n') | KeyCode::Char('N') => {
                         calculator.negate();
                     }
-                    // Arithmetic operations
+                    // Arithmetic operations - now handled by push_char and then evaluation on Enter
+                    // The individual operator key presses will just add the character to the input string.
+                    // The actual calculation will happen when 'Enter' is pressed.
                     KeyCode::Char('+') => {
-                        if !calculator.input.is_empty() {
-                            calculator.enter();
-                        }
-                        calculator.add();
+                        calculator.push_char('+');
                     }
                     KeyCode::Char('-') => {
-                        if !calculator.input.is_empty() {
-                            calculator.enter();
-                        }
-                        calculator.subtract();
+                        calculator.push_char('-');
                     }
                     KeyCode::Char('*') => {
-                        if !calculator.input.is_empty() {
-                            calculator.enter();
-                        }
-                        calculator.multiply();
+                        calculator.push_char('*');
                     }
                     KeyCode::Char('/') => {
-                        if !calculator.input.is_empty() {
-                            calculator.enter();
-                        }
-                        calculator.divide();
+                        calculator.push_char('/');
                     }
                     KeyCode::Char('^') => {
-                        if !calculator.input.is_empty() {
-                            calculator.enter();
-                        }
-                        calculator.power();
+                        calculator.push_char('^');
                     }
                     // Mode switching (using F-function keys)
                     KeyCode::F(1) => {
@@ -145,7 +132,7 @@ fn run_app<B: Backend>(
                     }
                     // Number input
                     KeyCode::Char(ch) => {
-                        if ch.is_ascii_digit() || ".-abcdefABCDEFx".contains(ch) {
+                        if ch.is_ascii_digit() || ".-abcdefABCDEFx()^*/+-".contains(ch) {
                             calculator.push_char(ch);
                         }
                     }

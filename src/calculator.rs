@@ -120,8 +120,19 @@ impl Calculator {
     }
 
     pub fn push_char(&mut self, ch: char) {
-        self.input.push(ch);
-        self.error = None;
+        let is_operator = "+-*/^()".contains(ch);
+        let is_valid_for_mode = match self.base_mode {
+            BaseMode::Decimal => ch.is_ascii_digit() || ch == '.',
+            BaseMode::Hexadecimal => ch.is_ascii_hexdigit() || ch == '.',
+            BaseMode::Binary => ch == '0' || ch == '1',
+        };
+
+        if is_operator || is_valid_for_mode {
+            self.input.push(ch);
+            self.error = None;
+        } else {
+            self.error = Some(format!("Invalid character '{}' for current base mode.", ch));
+        }
     }
 
     pub fn backspace(&mut self) {
@@ -229,11 +240,11 @@ impl Calculator {
             return;
         }
 
-        // Try to parse the input as a number and push to stack
-        match self.parse_input() {
-            Ok(value) => {
-                self.stack.push(value);
-                self.history.push(format!("Push: {}", self.format_value(&self.stack.last().unwrap())));
+        // Try to evaluate the input as an expression
+        match self.evaluate(&self.input) {
+            Ok(result) => {
+                self.stack.push(StackValue::Real(result));
+                self.history.push(format!("{} = {}", self.input, self.format_value(&self.stack.last().unwrap())));
                 self.input.clear();
                 self.error = None;
             }
